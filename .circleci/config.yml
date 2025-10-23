@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: maven:3.9.2-eclipse-temurin-21
+      - image: maven:3.9.2-jdk-21
     working_directory: ~/project
     steps:
       - checkout
