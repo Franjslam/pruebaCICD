@@ -4,21 +4,10 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: maven:3.9.1-eclipse-temurin-21  # Imagen Maven + JDK 21 válida
+      - image: maven:3.9.2-eclipse-temurin-21  # Imagen válida de Maven + JDK
     working_directory: ~/proyectoprogram2
     steps:
-      - checkout  # Clona tu repositorio
+      - checkout
       - run:
-          name: Compile project
-          command: mvn clean compile
-      - run:
-          name: Run tests
-          command: mvn test
-      - run:
-          name: Package project
-          command: mvn package
-
-workflows:
-  build_and_test:
-    jobs:
-      - build
+          name: Build with Maven
+          command: mvn clean package
