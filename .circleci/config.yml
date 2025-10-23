@@ -1,12 +1,57 @@
-version: 2.1
+version: 2.1 # Usamos la versión 2.1, la más reciente y recomendada
 
+# Definición de los jobs (tareas)
 jobs:
-  build:
+  build_and_test:
+    # ----------------------------------------------------------------------
+    # 1. Definición del ejecutor (CORRECCIÓN CRUCIAL AQUÍ)
+    # ----------------------------------------------------------------------
+    # Utilizamos una imagen de Docker válida para Maven con Java 21 (Temurin)
     docker:
-      - image: maven:3.9.0-eclipse-temurin-21  # Esta sí existe
-    working_directory: ~/proyectoprogram2
+      - image: maven:3.9.6-eclipse-temurin-21 
+        # Si prefieres la última 3.x con Java 21, puedes usar: maven:latest-jdk-21
+        # Si la imagen anterior falla, intenta con: maven:3.9.6-jdk-21
+
+    # Definición de los pasos del job
     steps:
+      # 1. Checkout: Descarga el código fuente del repositorio
       - checkout
+
+      # 2. Restaurar dependencias (Cache)
+      # Esto acelera el proceso si las dependencias no han cambiado
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "pom.xml" }}
+            # Si no hay un hit de cache, usa la clave de fallback
+            - v1-dependencies-
+
+      # 3. Compilar y descargar dependencias
+      # El comando 'mvn dependency:go-offline' solo descarga.
+      # 'mvn clean install -DskipTests' compila y descarga (más común en CI).
       - run:
-          name: Build with Maven
-          command: mvn clean package
+          name: Descargar dependencias y compilar
+          command: mvn clean install -DskipTests
+
+      # 4. Guardar dependencias en Cache
+      # Si el pom.xml no ha cambiado, este cache se reutilizará en futuras builds
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "pom.xml" }}
+
+      # 5. Ejecutar Pruebas
+      - run:
+          name: Ejecutar pruebas unitarias y de integración
+          command: mvn test
+
+      # 6. Empaquetar el artefacto (si es necesario)
+      - run:
+          name: Empaquetar el JAR/WAR final
+          command: mvn package
+
+# Definición de los workflows (cómo se ejecutan los jobs)
+workflows:
+  main:
+    jobs:
+      - build_and_test
+      # Aquí podrías añadir más jobs, como 'deploy
