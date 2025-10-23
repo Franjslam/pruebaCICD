@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: maven:3.8.8-eclipse-temurin-17  # Imagen verificada
+      - image: maven:3.9.0-eclipse-temurin-21  # Esta sí existe
     working_directory: ~/proyectoprogram2
     steps:
       - checkout
